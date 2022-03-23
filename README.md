@@ -12,5 +12,8 @@ input: (AB+CD)'
 
 output: A'C'+A'D'+B'C'+B'D'
 
-update 3/23/22
+------------
+
+update 3/23/22:
+
 program is now functional. edge cases need to be tested and UI should be redone, but program give correct results most of time. 
