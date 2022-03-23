@@ -5,10 +5,9 @@
 #user inputs boolean formula IE (AB+C'D+C(A+D)')
 #step 1: make sure all letters are capital in input (and sanitize input)
 #step 2: put equasion in standard form IE: AB+C'D+CA
-#   2.a demorgans law
+#   2.a demorgans theorm
 #   2.b distribute
 #step 3: truth table
-#...
 #step n-1: ???
 #step n: profit
 
@@ -332,77 +331,100 @@ def reformat_for_future_steps(equation_array):
         temp_arr=[]
     return(new_equation_array)
 
+#removes duplicate items from list
+def remove_dupes(a):
+    b=[]
+    [b.append(item) for item in a if item not in b]
+    b.sort()
+    return b
+
+#removes any items in list b from list a
+def list_diff(inputa,inputb):
+
+    a=[]
+    b=[]
+    final =[]
+    for item in inputa:
+        a.append(set(item))
+    
+    for item in inputb:
+        b.append(set(item))
+    
+    [a.remove(item) for item in b if item in a]
+  
+    for item in a:
+        final.append(list(item))
+
+    return final
+
+#takes difference; example:
+# ABC+ABC' = AB
+#or AB+ABC = AB
+#returns either original list or simplified
+def diff(a):
+    if(a[0]==a[1]):
+        return a
+    aset=set(a[0])
+
+    bset=set(a[1])
+
+    c1=list(aset.difference(bset))
+    c2=list(bset.difference(aset))
+
+    if(not c1 or not c2):
+        return [list(aset.intersection(bset))]
+    elif((c1[0][0]==c2[0][0])and len(c1)==1 and len(c2)==1):
+        return [list(aset.intersection(bset))]
+    else:
+        return a
+
 #I am using the tabular method for logic optimization. it is extremely inefficient but it works and computers are fast.
 #difference
 #steps:
 #1 sort lists by size
 #2. compare all lists that are the same size
     # a=b.difference(c)
-def logic_optimization(nested_equation):
-    #sorts minterms by how long they are, with longest being first
-    nested_equation.sort(key=len, reverse=True)
-    new_arr=[]
-    first_num=0
-    comp_num=0
-    used=True
-    used_num=0
-    keep_going=True
-    while(keep_going):
-        used_num =0
-        for i in range(len(nested_equation)):
-            first=nested_equation[i]
-            used=False
-  
-            for j in range(i,len(nested_equation)):
-                comp = nested_equation[j]
-
-                if(len(first)!=len(comp)):
-                    break
-
-                if(first_num>=comp_num):
-                    comp_num+=1
-                    continue
-
-                a=set(first)
-                b=set(comp)
-
-                cf=list(a.difference(b))
-                cs=list(b.difference(a))
+#removes duplicate items from a list
 
 
-                try:
-                    if(cf[0][0]==cs[0][0]):
-                        c=list(a.intersection(b))
-                        c.sort()
-                        new_arr.append(c)
-                        used=False
-                        used_num+=1
-                    else:
-                        new_arr.append(first)
-                except:
-                    comp_num+=1
-
-                    break
-
-                comp_num+=1
-            if(used):
-                continue
-                #new_arr.append(first)
-            first_num+=1
-            comp_num+=1
-
-        nested_equation=new_arr
-        print(new_arr)
-        new_arr=[]
-        nested_equation.sort(key=len, reverse=True)
+def more_opt(nested_eqn):
+    newlist=[]
+    usedlist=[]
+    for i in range(len(nested_eqn)):
+        used = False
+        for j in range(i,len(nested_eqn)):
+            a=diff([nested_eqn[i],nested_eqn[j]])
+            if len(a)==1: 
         
-        if(used_num==0 or len(nested_equation)==1):
-            keep_going=False
+                used = True
 
-    return(nested_equation)
+                if(a[0]!=nested_eqn[i]):
+                    usedlist.append(nested_eqn[i])
+                if(a[0]!=nested_eqn[j]):
+                    usedlist.append(nested_eqn[j])
+                newlist.append(a[0])                
+        if not used:  
+            newlist.append(nested_eqn[i])
+      
+    #removes duplicate values from the list
+    newlist= remove_dupes(newlist)
+    usedlist= remove_dupes(usedlist)
+
+    #takes difference between two lists
+    newlist=list_diff(newlist,usedlist)
+
+    return newlist
+
+
+def logic_optimization2(nested_equation):
+    nested_equation.sort(key=len, reverse=True)
+    size =len(nested_equation[0])
+    for i in range(size):
+        nested_equation=more_opt(nested_equation)
+        if(len(nested_equation)==1):break
+    return nested_equation
+
     
-
-
 
     
 #a test case or two
@@ -411,10 +433,13 @@ equation=0
 while(equation==0):
     equation=get_input()
     equation=sanitize(equation)
-print(equation)
+#print(equation)
 equation=standard_form(equation)
-print(equation)
+#print(equation)
 nested_equation=reformat_for_future_steps(equation)
-print(nested_equation)
-final=logic_optimization(nested_equation)
+#print(nested_equation)
+final=logic_optimization2(nested_equation)
 print(final)
+
+
+
